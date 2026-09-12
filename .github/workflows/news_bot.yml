@@ -1,0 +1,46 @@
+name: Vietnam Stock News Bot
+
+on:
+  schedule:
+    # Giờ UTC = giờ VN - 7
+    # 8h VN  = 1h UTC
+    - cron: '0 1 * * *'
+    # 10h VN = 3h UTC
+    - cron: '0 3 * * *'
+    # 11h30 VN = 4h30 UTC
+    - cron: '30 4 * * *'
+    # 14h VN = 7h UTC
+    - cron: '0 7 * * *'
+    # 22h VN = 15h UTC
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Run bot
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ZALO_BOT_TOKEN: ${{ secrets.ZALO_BOT_TOKEN }}
+          ZALO_CHAT_ID: ${{ secrets.ZALO_CHAT_ID }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+        run: python main.py
