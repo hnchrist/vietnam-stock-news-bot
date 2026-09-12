@@ -3,16 +3,11 @@ name: Vietnam Stock News Bot
 on:
   schedule:
     # Giờ UTC = giờ VN - 7
-    # 8h VN  = 1h UTC
-    - cron: '0 1 * * *'
-    # 10h VN = 3h UTC
-    - cron: '0 3 * * *'
-    # 11h30 VN = 4h30 UTC
-    - cron: '30 4 * * *'
-    # 14h VN = 7h UTC
-    - cron: '0 7 * * *'
-    # 22h VN = 15h UTC
-    - cron: '0 15 * * *'
+    - cron: '0 1 * * *'     # 8h VN
+    - cron: '0 3 * * *'     # 10h VN
+    - cron: '30 4 * * *'    # 11h30 VN
+    - cron: '0 7 * * *'     # 14h VN
+    - cron: '0 15 * * *'    # 22h VN
   workflow_dispatch:
 
 jobs:
@@ -34,6 +29,14 @@ jobs:
         run: |
           pip install -r requirements.txt
           playwright install chromium --with-deps
+
+      - name: Restore sent news state
+        uses: actions/cache@v4
+        with:
+          path: sent_news.json
+          key: sent-news-${{ github.run_id }}
+          restore-keys: |
+            sent-news-
 
       - name: Run bot
         env:

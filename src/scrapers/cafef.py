@@ -1,13 +1,28 @@
 import requests
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 
 
 RSS_FEEDS = [
-    ("CafeF-ChungKhoan", "https://cafef.vn/tin-tuc-chung-khoan.rss"),
     ("CafeF-DoanhNghiep", "https://cafef.vn/doanh-nghiep.rss"),
     ("CafeF-ThiTruong", "https://cafef.vn/thi-truong-chung-khoan.rss"),
 ]
+
+MAX_AGE_HOURS = 12
+
+
+def is_recent(pub_date_str, max_age_hours=MAX_AGE_HOURS):
+    if not pub_date_str:
+        return True
+    try:
+        pub_dt = parsedate_to_datetime(pub_date_str)
+        if pub_dt.tzinfo is None:
+            pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        return (now - pub_dt) <= timedelta(hours=max_age_hours)
+    except Exception:
+        return True
 
 
 def fetch_rss(source_name, url, limit):
@@ -20,38 +35,45 @@ def fetch_rss(source_name, url, limit):
             return items
 
         root = ET.fromstring(r.content)
-        for item in root.findall(".//item")[:limit]:
+        for item in root.findall(".//item")[:limit * 3]:
             title = (item.findtext("title") or "").strip()
             link = (item.findtext("link") or "").strip()
             desc = (item.findtext("description") or "").strip()
             pub = (item.findtext("pubDate") or "").strip()
 
-            if title:
-                items.append({
-                    "source": "CafeF",
-                    "title": title,
-                    "content": desc[:500],
-                    "url": link,
-                    "time": pub or datetime.now().isoformat(),
-                })
-        print(f"  ✅ {source_name}: {len(items)} tin")
+            if not title or not is_recent(pub):
+                continue
+
+            items.append({
+                "source": "CafeF",
+                "title": title,
+                "content": desc[:500],
+                "url": link,
+                "time": pub,
+            })
+
+            if len(items) >= limit:
+                break
+
+        print(f"  ✅ {source_name}: {len(items)} tin mới")
     except Exception as e:
         print(f"  ❌ {source_name} lỗi: {e}")
     return items
 
 
-def scrape_cafef_news(limit=20):
+def scrape_cafef_news(limit=8):
     all_news = []
     for name, url in RSS_FEEDS:
         news = fetch_rss(name, url, limit)
         all_news.extend(news)
 
-    print(f"📰 Tổng CafeF: {len(all_news)} tin")
-    return all_news[:limit]
+    all_news.sort(key=lambda x: x.get("time", ""), reverse=True)
+    print(f"📰 Tổng CafeF: {len(all_news)} tin (trong {MAX_AGE_HOURS}h gần nhất)")
+    return all_news
 
 
 if __name__ == "__main__":
     news = scrape_cafef_news()
-    print(f"\n=== Kết quả ===")
-    for n in news[:5]:
-        print(f"- {n['title'][:80]}")
+    print(f"\n=== Kết quả ({len(news)} tin) ===")
+    for n in news[:10]:
+        print(f"- [{n['time']}] {n['title'][:90]}")
