@@ -9,8 +9,8 @@ from src.utils.config import config
 def collect_all_news():
     """Thu thập tin từ tất cả nguồn."""
     all_news = []
-    all_news.extend(scrape_fireant_news(limit=20))
-    all_news.extend(scrape_cafef_news(limit=20))
+    all_news.extend(scrape_fireant_news(limit=8))
+    all_news.extend(scrape_cafef_news(limit=8))
     all_news.extend(scrape_ssi_news(limit=20))
     print(f"📥 Tổng cộng {len(all_news)} tin thô")
     return all_news
