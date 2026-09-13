@@ -217,3 +217,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 sent_news.json
+facebook_state.json
+facebook_state.b64
