@@ -45,10 +45,9 @@ def scrape_facebook_groups(group_urls, limit=MAX_POSTS_PER_GROUP):
             humanize=True,
             os=["windows"],
             locale="vi-VN",
-            storage_state=state_path,
         ) as browser:
-            page = browser.new_page()
-
+            context = browser.new_context(storage_state=state_path)
+            page = context.new_page()
             for group_url in group_urls:
                 print(f"🔍 Quét nhóm: {group_url}")
                 try:
