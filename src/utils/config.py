@@ -24,7 +24,11 @@ class Config:
     ]
 
     # Nhóm Facebook (thêm sau)
-    FACEBOOK_GROUPS = []
-
+    FACEBOOK_GROUPS = [
+    "https://www.facebook.com/groups/1073627863354970",
+    "https://www.facebook.com/groups/470718721335331",
+    "https://www.facebook.com/groups/fireantmedia",
+    "https://www.facebook.com/groups/chungkhoans",
+]
 
 config = Config()
